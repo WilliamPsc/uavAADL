@@ -1,0 +1,5 @@
+<PROJECT>
+  <AADL path="controllerApplication.aadl" enabled="false" opened="true"/>
+  <AADL path="gps.aadl" enabled="true" opened="true"/>
+  <AADL path="ins.aadl" enabled="true" opened="true"/>
+</PROJECT>

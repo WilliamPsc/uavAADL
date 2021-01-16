@@ -1,0 +1,88 @@
+PACKAGE uav
+
+PUBLIC
+	-- Shared memory
+	-- GPS
+	DATA data_gps
+  	END data_gps;
+
+	DATA IMPLEMENTATION data_gps.Impl
+ 	PROPERTIES 
+   		Concurrency_Control_Protocol => PCP;
+  	END data_gps.Impl;
+
+	-- IMU/INS
+	DATA data_ins
+  	END data_ins;
+
+	DATA IMPLEMENTATION data_ins.Impl
+ 	PROPERTIES 
+   		Concurrency_Control_Protocol => PCP;
+  	END data_ins.Impl;
+
+	
+	-- THREADS
+	-- Data Processor
+	THREAD dataProc
+  	FEATURES
+    		gps : REQUIRES DATA ACCESS data_gps.Impl;
+		ins : REQUIRES DATA ACCESS data_ins.Impl;
+  	PROPERTIES
+    		Dispatch_Protocol => Periodic;
+    		Period => 125 ms;
+    		Deadline => 125 ms;
+    		Compute_Execution_Time => 25 ms .. 25 ms;
+    		Priority => 9 ;
+  	END dataProc;
+  	THREAD IMPLEMENTATION dataProc.Impl
+  	END dataProc.Impl;
+
+	-- TB Controller
+	THREAD controller
+  	FEATURES
+    		gps : REQUIRES DATA ACCESS data_gps.Impl;
+		ins : REQUIRES DATA ACCESS data_ins.Impl;
+  	PROPERTIES
+    		Dispatch_Protocol => Periodic;
+    		Period => 125 ms;
+    		Deadline => 125 ms;
+    		Compute_Execution_Time => 25 ms .. 25 ms;
+    		Priority => 8;
+  	END controller;
+  	THREAD IMPLEMENTATION controller.Impl
+  	END controller.Impl;
+
+
+	-- FIN projet
+	PROCESS control
+  	END control;
+
+	SYSTEM IMPLEMENTATION control.Impl
+	SUBCOMPONENTS
+		-- Composants à déclarer
+		dataProc : THREAD dataProc.Impl;
+		controller : THREAD controller.Impl;
+	--CONNECTIONS
+		--connectDP_GPS : DATA ACCESS data_gps -> dataProc.gps;
+		--connectDP_INS : DATA ACCESS data_ins -> dataProc.ins;
+	END control.Impl;
+
+
+	processor cpu
+	properties
+		Scheduling_Protocol=>POSIX_1003_HIGHEST_PRIORITY_FIRST_PROTOCOL;
+  	end cpu;
+
+  	system drone
+  	end drone;
+
+  	system implementation drone.Impl
+  	subcomponents
+    		controlApplication : process control.Impl;
+    		cpu1 : processor cpu;
+  	properties
+    		Actual_Processor_Binding => reference (cpu1) applies to controlApplication;
+  	end drone.Impl;
+
+END uav;
+
