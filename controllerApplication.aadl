@@ -20,18 +20,22 @@ PUBLIC
    		Concurrency_Control_Protocol => PCP;
   	END data_ins.Impl;
 
+	-- INPUT/OUTPUT Data Processor
+	DATA inOutProc
+  	END inOutProc;
 	
 	-- THREADS
 	-- Data Processor
 	THREAD dataProc
   	FEATURES
-    		gps : REQUIRES DATA ACCESS data_gps.Impl;
-		ins : REQUIRES DATA ACCESS data_ins.Impl;
+    		gpsD : IN DATA PORT data_gps.Impl;
+		insD : IN DATA PORT data_ins.Impl;
+		servoD : OUT DATA PORT data_servo;
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
-    		Period => 125 ms;
-    		Deadline => 125 ms;
-    		Compute_Execution_Time => 25 ms .. 25 ms;
+    		Period => 20 ms;
+    		Deadline => 20 ms;
+    		Compute_Execution_Time => 0 ms .. 10 ms;
     		Priority => 9 ;
   	END dataProc;
   	THREAD IMPLEMENTATION dataProc.Impl
@@ -40,13 +44,13 @@ PUBLIC
 	-- TB Controller
 	THREAD controller
   	FEATURES
-    		gps : REQUIRES DATA ACCESS data_gps.Impl;
-		ins : REQUIRES DATA ACCESS data_ins.Impl;
+    		gpsD : REQUIRES DATA ACCESS data_gps.Impl;
+		insD : REQUIRES DATA ACCESS data_ins.Impl;
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
-    		Period => 125 ms;
-    		Deadline => 125 ms;
-    		Compute_Execution_Time => 25 ms .. 25 ms;
+    		Period => 20 ms;
+    		Deadline => 20 ms;
+    		Compute_Execution_Time => 0 ms .. 5 ms;
     		Priority => 8;
   	END controller;
   	THREAD IMPLEMENTATION controller.Impl
@@ -57,11 +61,14 @@ PUBLIC
 	PROCESS control
   	END control;
 
-	SYSTEM IMPLEMENTATION control.Impl
+	PROCESS IMPLEMENTATION control.Impl
 	SUBCOMPONENTS
 		-- Composants à déclarer
 		dataProc : THREAD dataProc.Impl;
 		controller : THREAD controller.Impl;
+		gps : THREAD gps.Impl;
+		ins : THREAD ins.Impl;
+		servo : THREAD servo.Impl;
 	--CONNECTIONS
 		--connectDP_GPS : DATA ACCESS data_gps -> dataProc.gps;
 		--connectDP_INS : DATA ACCESS data_ins -> dataProc.ins;
@@ -73,8 +80,8 @@ PUBLIC
 		Scheduling_Protocol=>POSIX_1003_HIGHEST_PRIORITY_FIRST_PROTOCOL;
   	end cpu;
 
-  	system drone
-  	end drone;
+  	SYSTEM drone
+  	END drone;
 
   	system implementation drone.Impl
   	subcomponents
@@ -84,5 +91,4 @@ PUBLIC
     		Actual_Processor_Binding => reference (cpu1) applies to controlApplication;
   	end drone.Impl;
 
-END uav;
 

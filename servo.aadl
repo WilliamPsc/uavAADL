@@ -1,16 +1,19 @@
 	-- THREADS
-	-- GPS
-	THREAD gps
+	-- SERVO
+	THREAD servo
   	FEATURES
     		input : IN DATA PORT inOutProc;
 		output : OUT DATA PORT inOutProc;
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
-    		Period => 10 ms;
-    		Deadline => 10 ms;
+    		Period => 20 ms;
+    		Deadline => 20 ms;
     		Compute_Execution_Time => 1 ms;
-    		Priority => 10 ;
-  	END gps;
-  	THREAD IMPLEMENTATION gps.Impl
-  	END gps.Impl;
+    		Priority => 7 ;
+  	END servo;
+  	THREAD IMPLEMENTATION servo.Impl
+  	END servo.Impl;
+
+
+END uav;
 
