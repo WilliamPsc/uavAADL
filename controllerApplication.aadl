@@ -1,7 +1,7 @@
 PACKAGE uav
 
 PUBLIC
-	-- Shared memory
+	-- SHARED MEMORY
 	-- GPS
 	DATA data_gps
   	END data_gps;
@@ -20,17 +20,29 @@ PUBLIC
    		Concurrency_Control_Protocol => PCP;
   	END data_ins.Impl;
 
-	-- INPUT/OUTPUT Data Processor
-	DATA inOutProc
-  	END inOutProc;
+	-- SERVO
+	DATA data_servo
+  	END data_servo;
+
+	DATA IMPLEMENTATION data_servo.Impl
+ 	PROPERTIES 
+   		Concurrency_Control_Protocol => PCP;
+  	END data_servo.Impl;
+
 	
 	-- THREADS
 	-- Data Processor
 	THREAD dataProc
   	FEATURES
-    		gpsD : IN DATA PORT data_gps.Impl;
-		insD : IN DATA PORT data_ins.Impl;
-		servoD : OUT DATA PORT data_servo;
+		in_gps : IN DATA PORT data_gps;
+    		out_gps : REQUIRES DATA ACCESS data_gps.Impl;
+		
+		in_ins : IN DATA PORT data_ins;
+		out_ins : OUT DATA PORT data_ins.Impl;
+
+		in_control : IN DATA PORT data_servo.impl;
+		out_servo : OUT DATA PORT data_servo.impl;
+
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
     		Period => 20 ms;
@@ -57,21 +69,27 @@ PUBLIC
   	END controller.Impl;
 
 
-	-- FIN projet
+	-- PROCESS
 	PROCESS control
+	FEATURES
+		input1 : IN DATA PORT data_gps.Impl;
+		input2 : IN DATA PORT data_ins.Impl;
+		output3 : OUT DATA PORT data_servo.Impl;
   	END control;
+
 
 	PROCESS IMPLEMENTATION control.Impl
 	SUBCOMPONENTS
 		-- Composants à déclarer
-		dataProc : THREAD dataProc.Impl;
+		dataProcessor : THREAD dataProc.Impl;
 		controller : THREAD controller.Impl;
-		gps : THREAD gps.Impl;
-		ins : THREAD ins.Impl;
-		servo : THREAD servo.Impl;
-	--CONNECTIONS
-		--connectDP_GPS : DATA ACCESS data_gps -> dataProc.gps;
-		--connectDP_INS : DATA ACCESS data_ins -> dataProc.ins;
+		data_gps : DATA data_gps.Impl;
+	CONNECTIONS
+		in_DP_GPS : PORT input1 -> dataProcessor.in_gps;
+		in_DP_INS : PORT input2 -> dataProcessor.in_ins;
+		out_DP_GPS : DATA ACCESS data_gps -> dataProcessor.out_gps;
+	PROPERTIES
+		Timing => immediate applies to in_DP_GPS;
 	END control.Impl;
 
 
@@ -90,5 +108,5 @@ PUBLIC
   	properties
     		Actual_Processor_Binding => reference (cpu1) applies to controlApplication;
   	end drone.Impl;
-
+END uav;
 
