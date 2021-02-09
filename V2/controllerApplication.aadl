@@ -1,0 +1,153 @@
+PACKAGE uav
+
+PUBLIC
+  WITH Deployment;
+  WITH Data_Model;
+	-----------------
+	-- Subprograms --
+	-----------------
+
+	subprogram controller_spg
+	properties
+	  source_language => C;
+	  source_name     => "controller_spg";
+	  source_text     => ("controllerApplication.c");
+	end controller_spg;
+
+	subprogram dataProc_spg
+	properties
+	  source_language => C;
+	  source_name     => "dataProc_spg";
+	  source_text     => ("controllerApplication.c");
+	end dataProc_spg;
+
+
+
+	-- SHARED MEMORY
+	-- GPS
+	DATA data_gps
+	PROPERTIES
+    		Data_Model::Data_Representation => Integer;
+  	END data_gps;
+
+	DATA IMPLEMENTATION data_gps.Impl
+ 	--PROPERTIES 
+   	--	Concurrency_Control_Protocol => PCP;
+  	END data_gps.Impl;
+
+	-- IMU/INS
+	DATA data_ins
+	PROPERTIES
+    		Data_Model::Data_Representation => Integer;
+  	END data_ins;
+
+	DATA IMPLEMENTATION data_ins.Impl
+ 	--PROPERTIES 
+   	--	Concurrency_Control_Protocol => PCP;
+  	END data_ins.Impl;
+
+	-- SERVO
+	DATA data_servo
+	PROPERTIES
+    		Data_Model::Data_Representation => Integer;
+  	END data_servo;
+
+	
+	-- THREADS
+	-- Data Processor
+	THREAD dataProc
+  	FEATURES
+		in_gps : IN DATA PORT data_gps;
+    		out_gps : REQUIRES DATA ACCESS data_gps.Impl;
+		
+		in_ins : IN DATA PORT data_ins;
+		out_ins : REQUIRES DATA ACCESS data_ins.Impl;
+
+		in_control : IN DATA PORT data_servo;
+		out_servo : OUT DATA PORT data_servo;
+
+  	PROPERTIES
+    		Dispatch_Protocol => Periodic;
+    		Period => 20 ms;
+    		Deadline => 20 ms;
+    		Compute_Execution_Time => 0 ms .. 10 ms;
+    		Priority => 9 ;
+  	END dataProc;
+  	THREAD IMPLEMENTATION dataProc.Impl
+	CALLS
+		c : {
+			s : subprogram dataProc_spg;
+		};
+  	END dataProc.Impl;
+
+	-- TB Controller
+	THREAD controller
+  	FEATURES
+		in_gps : REQUIRES DATA ACCESS data_gps.Impl;
+		in_ins : REQUIRES DATA ACCESS data_ins.Impl;
+    		out_servo : OUT DATA PORT data_servo;
+  	PROPERTIES
+    		Dispatch_Protocol => Periodic;
+    		Period => 20 ms;
+    		Deadline => 20 ms;
+    		Compute_Execution_Time => 0 ms .. 5 ms;
+    		Priority => 8;
+  	END controller;
+  	THREAD IMPLEMENTATION controller.Impl
+	CALLS
+		c : {
+			s : subprogram controller_spg;
+		};
+  	END controller.Impl;
+
+
+	-- PROCESS
+	PROCESS control
+	FEATURES
+		input1 : IN DATA PORT data_gps;
+		input2 : IN DATA PORT data_ins;
+		input3 : IN DATA PORT data_servo;
+		output1 : OUT DATA PORT data_servo;
+  	END control;
+
+
+	PROCESS IMPLEMENTATION control.Impl
+	SUBCOMPONENTS
+		-- Composants à déclarer
+		dataProcessor : THREAD dataProc.Impl;
+		controller : THREAD controller.Impl;
+		data_gps : DATA data_gps.Impl;
+		data_ins : DATA data_ins.Impl;
+	CONNECTIONS
+		in_GPS_DP : PORT input1 -> dataProcessor.in_gps;
+		in_INS_DP : PORT input2 -> dataProcessor.in_ins;
+		in_CT_DP 	: PORT input3 -> dataProcessor.in_control;
+
+		out_CT_DP : PORT controller.out_servo -> dataProcessor.in_control;
+		out_DP_servo : PORT dataProcessor.out_servo -> output1;
+
+		out_DP_GPS : DATA ACCESS data_gps -> dataProcessor.out_gps;
+		out_DP_INS : DATA ACCESS data_ins -> dataProcessor.out_ins;
+		out_MGPS_CT : DATA ACCESS data_gps -> controller.in_gps;
+		out_MINS_CT : DATA ACCESS data_ins -> controller.in_ins;
+	PROPERTIES
+		Timing => immediate applies to in_DP_GPS;
+	END control.Impl;
+
+
+	processor cpu
+	properties
+		Scheduling_Protocol=>POSIX_1003_HIGHEST_PRIORITY_FIRST_PROTOCOL;
+  	end cpu;
+
+  	SYSTEM drone
+  	END drone;
+
+  	system implementation drone.Impl
+  	subcomponents
+    		controlApplication : process control.Impl;
+    		cpu1 : processor cpu;
+  	properties
+    		Actual_Processor_Binding => (reference (cpu1)) applies to controlApplication;
+END uav;
+  	end drone.Impl;
