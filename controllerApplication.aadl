@@ -24,11 +24,6 @@ PUBLIC
 	DATA data_servo
   	END data_servo;
 
-	DATA IMPLEMENTATION data_servo.Impl
- 	PROPERTIES 
-   		Concurrency_Control_Protocol => PCP;
-  	END data_servo.Impl;
-
 	
 	-- THREADS
 	-- Data Processor
@@ -38,10 +33,10 @@ PUBLIC
     		out_gps : REQUIRES DATA ACCESS data_gps.Impl;
 		
 		in_ins : IN DATA PORT data_ins;
-		out_ins : OUT DATA PORT data_ins.Impl;
+		out_ins : REQUIRES DATA ACCESS data_ins.Impl;
 
-		in_control : IN DATA PORT data_servo.impl;
-		out_servo : OUT DATA PORT data_servo.impl;
+		in_control : IN DATA PORT data_servo;
+		out_servo : OUT DATA PORT data_servo;
 
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
@@ -56,8 +51,9 @@ PUBLIC
 	-- TB Controller
 	THREAD controller
   	FEATURES
-    		gpsD : REQUIRES DATA ACCESS data_gps.Impl;
-		insD : REQUIRES DATA ACCESS data_ins.Impl;
+		in_gps : REQUIRES DATA ACCESS data_gps.Impl;
+		in_ins : REQUIRES DATA ACCESS data_ins.Impl;
+    		out_servo : OUT DATA PORT data_servo;
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
     		Period => 20 ms;
@@ -72,9 +68,10 @@ PUBLIC
 	-- PROCESS
 	PROCESS control
 	FEATURES
-		input1 : IN DATA PORT data_gps.Impl;
-		input2 : IN DATA PORT data_ins.Impl;
-		output3 : OUT DATA PORT data_servo.Impl;
+		input1 : IN DATA PORT data_gps;
+		input2 : IN DATA PORT data_ins;
+		input3 : IN DATA PORT data_servo;
+		output1 : OUT DATA PORT data_servo;
   	END control;
 
 
@@ -84,10 +81,19 @@ PUBLIC
 		dataProcessor : THREAD dataProc.Impl;
 		controller : THREAD controller.Impl;
 		data_gps : DATA data_gps.Impl;
+		data_ins : DATA data_ins.Impl;
 	CONNECTIONS
-		in_DP_GPS : PORT input1 -> dataProcessor.in_gps;
-		in_DP_INS : PORT input2 -> dataProcessor.in_ins;
+		in_GPS_DP : PORT input1 -> dataProcessor.in_gps;
+		in_INS_DP : PORT input2 -> dataProcessor.in_ins;
+		in_CT_DP 	: PORT input3 -> dataProcessor.in_control;
+
+		out_CT_DP : PORT controller.out_servo -> dataProcessor.in_control;
+		out_DP_servo : PORT dataProcessor.out_servo -> output1;
+
 		out_DP_GPS : DATA ACCESS data_gps -> dataProcessor.out_gps;
+		out_DP_INS : DATA ACCESS data_ins -> dataProcessor.out_ins;
+		out_MGPS_CT : DATA ACCESS data_gps -> controller.in_gps;
+		out_MINS_CT : DATA ACCESS data_ins -> controller.in_ins;
 	PROPERTIES
 		Timing => immediate applies to in_DP_GPS;
 	END control.Impl;
@@ -109,4 +115,5 @@ PUBLIC
     		Actual_Processor_Binding => reference (cpu1) applies to controlApplication;
   	end drone.Impl;
 END uav;
+
 
