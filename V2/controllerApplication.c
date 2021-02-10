@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <po_hi_time.h>
 
-int gps =0;
-int ins =0;
+struct dataGPS {
+	double latitude;
+	double longitude
+} dataGPS;
+
+struct dataINS {
+	double angularSpeed;
+	double speed;
+} dataINS;
+
+int gps = 0;
+int ins = 0;
 
 void controller_spg (void)
 {
@@ -21,12 +31,12 @@ void write_gps (int* value)
   int v = *value;
   v++;
   *value = v;
-  printf ("Value Write : %d\n", *value);
+  printf ("Write GPS : %d\n", *value);
 }
 
 void read_gps (int* value)
 {
-  printf ("Value: %d\n", *value);
+  printf ("Read GPS : %d\n", *value);
   gps=*value;
 }
 
@@ -35,11 +45,11 @@ void write_ins (int* value)
   int v = *value;
   v++;
   *value = v;
-  printf ("Value Write : %d\n", *value);
+  printf ("Write INS : %d\n", *value);
 }
 
 void read_ins (int* value)
 {
-  printf ("Value: %d\n", *value);
+  printf ("Read INS : %d\n", *value);
   gps=*value;
 }
