@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <po_hi_time.h>
 
@@ -11,7 +10,7 @@ void controller_spg (void)
   fflush (stdout);
 }
 
-void dataProc_spg (void)
+void dataproc_spg (void)
 {
   printf ("[%d] DataProcessor\n", milliseconds_since_epoch());
   fflush (stdout);
@@ -44,4 +43,3 @@ void read_ins (int* value)
   printf ("Value: %d\n", *value);
   gps=*value;
 }
-

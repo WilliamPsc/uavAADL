@@ -107,7 +107,7 @@ PUBLIC
 		MYCALLS: {
 		Call_Write_gps : subprogram data_gps.Write_data_gps;
 		Call_Write_ins : subprogram data_ins.write_data_ins;
-		Call_dataProc : subprogram dataProc_Spg;
+		Call_dataProc : subprogram dataProc_spg;
 		};
 	CONNECTIONS
 		C1 : data access seq_cnt_gps -> Call_Write_gps.this;
@@ -123,13 +123,13 @@ PUBLIC
 	SUBPROGRAM IMPLEMENTATION controller_sequence.Impl
 	CALLS
 		MYCALLS: {
-		Call_Write_gps : subprogram data_gps.Write_data_gps;
-		Call_Write_ins : subprogram data_ins.write_data_ins;
-		Call_controller : subprogram controller_Spg;
+		Call_Read_gps : subprogram data_gps.Read_data_gps;
+		Call_Read_ins : subprogram data_ins.Read_data_ins;
+		Call_controller : subprogram controller_spg;
 		};
 	CONNECTIONS
-		C1 : data access seq_cnt_gps -> Call_Write_gps.this;
-		C2 : data access seq_cnt_ins -> Call_Write_ins.this;
+		C1 : data access seq_cnt_gps -> Call_Read_gps.this;
+		C2 : data access seq_cnt_ins -> Call_Read_ins.this;
 	end controller_sequence.Impl;
 
 	-- THREADS
@@ -254,10 +254,9 @@ PUBLIC
 
   	system implementation drone.Impl
   	subcomponents
-    		controlApplication : process control.Impl;
+    		control : process control.Impl;
     		cpu1 : processor cpu.Impl;
   	properties
-    		Actual_Processor_Binding => (reference (cpu1)) applies to controlApplication;
-end drone.Impl;
+    		Actual_Processor_Binding => (reference (cpu1)) applies to control;
+	END drone.Impl;
 END uav;
-  	
