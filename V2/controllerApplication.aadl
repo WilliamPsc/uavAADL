@@ -3,7 +3,6 @@ PACKAGE uav
 PUBLIC
   WITH Deployment;
   WITH Data_Model;
-	
 
 
 	-- SHARED MEMORY
@@ -150,7 +149,7 @@ PUBLIC
     		Period => 20 ms;
     		Deadline => 20 ms;
     		Compute_Execution_Time => 0 ms .. 10 ms;
-    		Priority => 9 ;
+    		Priority => 9;
   	END dataProc;
   	THREAD IMPLEMENTATION dataProc.Impl
 	CALLS
@@ -217,7 +216,7 @@ PUBLIC
 
 	PROCESS IMPLEMENTATION control.Impl
 	SUBCOMPONENTS
-		-- Composants Ã  dÃ©clarer
+		-- Composants à déclarer
 		dataProcessor : THREAD dataProc.Impl;
 		controller : THREAD controller.Impl;
 		data_gps : DATA data_gps.Impl;
@@ -225,9 +224,7 @@ PUBLIC
 	CONNECTIONS
 		in_GPS_DP : PORT input1 -> dataProcessor.in_gps;
 		in_INS_DP : PORT input2 -> dataProcessor.in_ins;
-		in_CT_DP 	: PORT input3 -> dataProcessor.in_control;
-
-		out_CT_DP : PORT controller.out_servo -> dataProcessor.in_control;
+		CT_DP 	: PORT controller.out_servo -> dataProcessor.in_control;
 		--out_DP_servo : PORT dataProcessor.out_servo -> output1;
 
 		out_DP_GPS : DATA ACCESS data_gps -> dataProcessor.out_gps;
@@ -235,7 +232,7 @@ PUBLIC
 		out_MGPS_CT : DATA ACCESS data_gps -> controller.in_gps;
 		out_MINS_CT : DATA ACCESS data_ins -> controller.in_ins;
 	PROPERTIES
-		Timing => immediate applies to in_GPS_DP,in_INS_DP,in_CT_DP,out_CT_DP;--out_DP_servo ;
+		Timing => immediate applies to in_GPS_DP,in_INS_DP,CT_DP;--out_DP_servo ;
 	END control.Impl;
 
 
@@ -260,3 +257,6 @@ PUBLIC
     		Actual_Processor_Binding => (reference (cpu1)) applies to control;
 	END drone.Impl;
 END uav;
+
+
+

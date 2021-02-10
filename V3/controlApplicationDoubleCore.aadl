@@ -74,76 +74,26 @@ PUBLIC
 	    	Data_Model::Data_Representation => Struct;
   	END data_ins.Impl;
 
-	SUBPROGRAM Write_spg_ins
-	FEATURES
-		this : requires data access data_ins.Impl;
-	PROPERTIES
-		source_language => C;
-		source_name     => "write_ins";
-		source_text     => ("controllerApplication.c");
-	END Write_spg_ins;
-
-	SUBPROGRAM Read_spg_ins
-	FEATURES
-		this : requires data access data_ins.Impl;
-	properties
-		source_language => C;
-		source_name     => "read_ins";
-		source_text     => ("controllerApplication.c");
-	END Read_spg_ins;
-
 	
 
 
 	-- SUBPROGRAM
-	SUBPROGRAM dataProc_sequence
-	FEATURES
-		seq_cnt_gps : requires data access data_gps.Impl;
-		seq_cnt_ins : requires data access data_ins.Impl;
-	END dataProc_sequence;
 
-	SUBPROGRAM IMPLEMENTATION dataProc_sequence.Impl
-	CALLS
-		MYCALLS: {
-		Call_Write_gps : subprogram data_gps.Write_data_gps;
-		Call_Write_ins : subprogram data_ins.write_data_ins;
-		Call_dataProc : subprogram dataProc_spg;
-		};
-	CONNECTIONS
-		C1 : data access seq_cnt_gps -> Call_Write_gps.this;
-		C2 : data access seq_cnt_ins -> Call_Write_ins.this;
-	end dataProc_sequence.Impl;
+	
 
-	SUBPROGRAM controller_sequence
-	FEATURES
-		seq_cnt_gps : requires data access data_gps.Impl;
-		seq_cnt_ins : requires data access data_ins.Impl;
-	END controller_sequence;
-
-	SUBPROGRAM IMPLEMENTATION controller_sequence.Impl
-	CALLS
-		MYCALLS: {
-		Call_Read_gps : subprogram data_gps.Read_data_gps;
-		Call_Read_ins : subprogram data_ins.Read_data_ins;
-		Call_controller : subprogram controller_spg;
-		};
-	CONNECTIONS
-		C1 : data access seq_cnt_gps -> Call_Read_gps.this;
-		C2 : data access seq_cnt_ins -> Call_Read_ins.this;
-	end controller_sequence.Impl;
 
 	-- THREADS
 	-- Data Processor
 	THREAD dataProc
   	FEATURES
 		in_gps : IN DATA PORT data_gps;
-    		out_gps : REQUIRES DATA ACCESS data_gps.Impl;
+    		out_gps : OUT DATA PORT data_gps;
 		
 		in_ins : IN DATA PORT data_ins;
-		out_ins : REQUIRES DATA ACCESS data_ins.Impl;
+		out_ins : OUT DATA PORT data_ins;
 
-		in_control : IN DATA PORT data_Internal_Type;
-		--out_servo : OUT DATA PORT data_Internal_Type;
+		in_control : IN DATA PORT data_servo;
+		out_servo : OUT DATA PORT data_servo;
 
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
@@ -152,101 +102,91 @@ PUBLIC
     		Compute_Execution_Time => 0 ms .. 10 ms;
     		Priority => 9 ;
   	END dataProc;
-  	THREAD IMPLEMENTATION dataProc.Impl
-	CALLS
-		c : {
-			s : subprogram dataProc_sequence.Impl;
-		};
-	CONNECTIONS
-		C1 : data access out_gps -> s.seq_cnt_gps;
-		C2 : data access out_ins -> s.seq_cnt_ins;
-  	END dataProc.Impl;
 
 	-- TB Controller
 	THREAD controller
   	FEATURES
-		in_gps : REQUIRES DATA ACCESS data_gps.Impl;
-		in_ins : REQUIRES DATA ACCESS data_ins.Impl;
-    		out_servo : OUT DATA PORT data_Internal_Type;
+		in_gps : IN DATA PORT data_gps;
+		in_ins : IN DATA PORT data_ins;
+    		out_gps : OUT DATA PORT data_gps;
+    		out_ins : OUT DATA PORT data_ins;
+    		out_servo : OUT DATA PORT data_servo;
   	PROPERTIES
     		Dispatch_Protocol => Periodic;
     		Period => 20 ms;
     		Deadline => 20 ms;
     		Compute_Execution_Time => 0 ms .. 5 ms;
     		Priority => 8;
+		Dispatch_Offset => 10;
   	END controller;
-  	THREAD IMPLEMENTATION controller.Impl
-	CALLS
-		c : {
-			s : subprogram controller_sequence.Impl;
-		};
-	CONNECTIONS
-		C1 : data access in_gps -> s.seq_cnt_gps;
-		C2 : data access in_ins -> s.seq_cnt_ins;
-  	END controller.Impl;
 
 	-----------------
 	-- Subprograms --
 	-----------------
 
-	subprogram controller_spg
-	properties
-	  source_language => C;
-	  source_name     => "controller_spg";
-	  source_text     => ("controllerApplication.c");
-	end controller_spg;
 
-	subprogram dataProc_spg
-	properties
-	  source_language => C;
-	  source_name     => "dataProc_spg";
-	  source_text     => ("controllerApplication.c");
-	end dataProc_spg;
-
-
-
+	
+	-----------------
+	---- PROCESS ----
+	-----------------
 	-- PROCESS processDataComputer
 	PROCESS processDataComputer
 	FEATURES
 		input1 : IN DATA PORT data_gps;
 		input2 : IN DATA PORT data_ins;
-		input3 : IN DATA PORT data_Internal_Type;
-		output1 : OUT DATA PORT data_Internal_Type;
+		input3 : IN DATA PORT data_servo;
+
+		output1 : OUT DATA PORT data_gps;
+		output2 : OUT DATA PORT data_ins;
+		output3 : OUT DATA PORT data_servo;
   	END processDataComputer;
 
 
 	PROCESS IMPLEMENTATION processDataComputer.Impl
 	SUBCOMPONENTS
-		-- Composants Ã  dÃ©clarer
+		-- Composants à déclarer
 		dataProcessor : THREAD dataProc.Impl;
-		data_gps : DATA data_gps.Impl;
-		data_ins : DATA data_ins.Impl;
-	--CONNECTIONS
+	CONNECTIONS
+		in_GPS_DP : PORT input1 -> dataProcessor.in_gps;
+		in_INS_DP : PORT input2 -> dataProcessor.in_ins;
+		in_CT_DP  : PORT input3 -> dataProcessor.in_control;
+
+		out_DP_GPS : PORT dataProcessor.out_gps -> output1;
+		out_DP_INS : PORT dataProcessor.out_ins -> output2;
+		out_DP_servo : PORT dataProcessor.out_servo -> output3;
 		
 	PROPERTIES
-		Timing => immediate applies to in_GPS_DP,in_INS_DP,in_CT_DP,out_CT_DP;--out_DP_servo ;
+		Timing => immediate applies to in_GPS_DP,in_INS_DP,in_CT_DP,out_DP_GPS,out_DP_INS,out_DP_servo;
 	END processDataComputer.Impl;
 
-	-- PROCESS processDataComputer
-	PROCESS ProcessControlComputer
+	
+
+	-- PROCESS processControlComputer
+	PROCESS processControlComputer
 	FEATURES
 		input1 : IN DATA PORT data_gps;
 		input2 : IN DATA PORT data_ins;
-		input3 : IN DATA PORT data_Internal_Type;
-		output1 : OUT DATA PORT data_Internal_Type;
+
+		output1 : OUT DATA PORT data_gps;
+		output2 : OUT DATA PORT data_ins;
+		output3 : OUT DATA PORT data_servo;
   	END ProcessControlComputer;
 
 
-	PROCESS IMPLEMENTATION ProcessControlComputer.Impl
+	PROCESS IMPLEMENTATION processControlComputer.Impl
 	SUBCOMPONENTS
-		-- Composants Ã  dÃ©clarer
+		-- Composants à déclarer
 		controller : THREAD controller.Impl;
-	--CONNECTIONS
+	CONNECTIONS
+		in_GPS_CT : PORT input1 -> controller.in_gps;
+		in_INS_CT : PORT input2 -> controller.in_ins;
 		
-
+		out_CT_GPS : PORT controller.out_gps -> output1;
+		out_CT_INS : PORT controller.out_ins -> output2;
+		out_CT_servo : PORT controller.out_servo -> output3;
 		
 	PROPERTIES
-		Timing => immediate applies to in_GPS_DP,in_INS_DP,in_CT_DP,out_CT_DP;--out_DP_servo ;
+		Timing => immediate applies to in_GPS_CT,in_INS_CT,out_CT_GPS,out_CT_INS,out_CT_servo;
 	END ProcessControlComputer.Impl;
 
 	processor cpu
@@ -273,5 +213,6 @@ PUBLIC
 		Actual_Processor_Binding => (reference (cpu2)) applies to ProcessControlComputer;
 	END drone.Impl;
 END uav;
+
 
 
