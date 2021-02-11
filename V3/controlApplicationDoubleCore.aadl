@@ -73,11 +73,63 @@ PUBLIC
 	PROPERTIES
 	    	Data_Model::Data_Representation => Struct;
   	END data_ins.Impl;
+	
+	SUBPROGRAM Write_spg_ins
+	FEATURES
+		this : requires data access data_ins.Impl;
+	PROPERTIES
+		source_language => C;
+		source_name     => "write_ins";
+		source_text     => ("controllerApplication.c");
+	END Write_spg_ins;
+
+	SUBPROGRAM Read_spg_ins
+	FEATURES
+		this : requires data access data_ins.Impl;
+	PROPERTIES
+		source_language => C;
+		source_name     => "read_ins";
+		source_text     => ("controllerApplication.c");
+	END Read_spg_ins;
 
 	--------------------
 	---- SUBPROGRAM ----
 	--------------------
+	SUBPROGRAM dataProc_sequence
+	FEATURES
+		seq_cnt_gps : requires data access data_gps.Impl;
+		seq_cnt_ins : requires data access data_ins.Impl;
+	END dataProc_sequence;
 
+	SUBPROGRAM IMPLEMENTATION dataProc_sequence.Impl
+	CALLS
+		MYCALLS: {
+			Call_Write_gps : subprogram data_gps.Write_data_gps;
+			Call_Write_ins : subprogram data_ins.write_data_ins;
+			Call_dataProc : subprogram dataProc_spg;
+		};
+	CONNECTIONS
+		C1 : data access seq_cnt_gps -> Call_Write_gps.this;
+		C2 : data access seq_cnt_ins -> Call_Write_ins.this;
+	END dataProc_sequence.Impl;
+
+	SUBPROGRAM controller_sequence
+	FEATURES
+		seq_cnt_gps : requires data access data_gps.Impl;
+		seq_cnt_ins : requires data access data_ins.Impl;
+	END controller_sequence;
+
+	SUBPROGRAM IMPLEMENTATION controller_sequence.Impl
+	CALLS
+		MYCALLS: {
+			Call_Read_gps : subprogram data_gps.Read_data_gps;
+			Call_Read_ins : subprogram data_ins.Read_data_ins;
+			Call_controller : subprogram controller_spg;
+		};
+	CONNECTIONS
+		C1 : data access seq_cnt_gps -> Call_Read_gps.this;
+		C2 : data access seq_cnt_ins -> Call_Read_ins.this;
+	END controller_sequence.Impl;
 	
 
 	-----------------
@@ -101,6 +153,15 @@ PUBLIC
     		Compute_Execution_Time => 0 ms .. 10 ms;
     		Priority => 9 ;
   	END dataProc;
+	THREAD IMPLEMENTATION dataProc.Impl
+	CALLS
+		c : {
+			s : subprogram dataProc_sequence.Impl;
+		};
+	CONNECTIONS
+		C1 : data access out_gps -> s.seq_cnt_gps;
+		C2 : data access out_ins -> s.seq_cnt_ins;
+  	END dataProc.Impl;
 
 	-- TB Controller
 	THREAD controller
@@ -118,10 +179,32 @@ PUBLIC
 		Priority => 8;
 		Dispatch_Offset => 10;
   	END controller;
+	THREAD IMPLEMENTATION controller.Impl
+	CALLS
+		c : {
+			s : subprogram controller_sequence.Impl;
+		};
+	CONNECTIONS
+		C1 : data access in_gps -> s.seq_cnt_gps;
+		C2 : data access in_ins -> s.seq_cnt_ins;
+  	END controller.Impl;
 
 	-----------------
 	-- Subprograms --
 	-----------------
+	SUBPROGRAM controller_spg
+	PROPERTIES
+		source_language => C;
+		source_name     => "controller_spg";
+		source_text     => ("controllerApplication.c");
+	END controller_spg;
+
+	SUBPROGRAM dataProc_spg
+	PROPERTIES
+		source_language => C;
+		source_name     => "dataProc_spg";
+		source_text     => ("controllerApplication.c");
+	END dataProc_spg;
 
 
 	
@@ -203,9 +286,9 @@ PUBLIC
 
   	SYSTEM IMPLEMENTATION drone.Impl
   	SUBCOMPONENTS
-    	processDataComputer : process processDataComputer.Impl;
+    		processDataComputer : process processDataComputer.Impl;
 		processControlComputer : process processControlComputer.Impl;
-    	cpu1 : processor cpu.Impl;
+    		cpu1 : processor cpu.Impl;
 		cpu2 : processor cpu.Impl;
   	PROPERTIES
     	Actual_Processor_Binding => (reference (cpu1)) applies to processDataComputer;

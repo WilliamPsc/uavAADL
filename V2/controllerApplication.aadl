@@ -134,7 +134,9 @@ PUBLIC
 		C2 : data access seq_cnt_ins -> Call_Read_ins.this;
 	END controller_sequence.Impl;
 
-	-- THREADS
+	-----------------
+	---- THREADS ----
+	-----------------
 	-- Data Processor
 	THREAD dataProc
   	FEATURES
@@ -204,7 +206,9 @@ PUBLIC
 	END dataProc_spg;
 
 
-	-- PROCESS
+	-----------------
+	---- PROCESS ----
+	-----------------
 	PROCESS control
 	FEATURES
 		input1 : IN DATA PORT data_gps;
@@ -251,10 +255,10 @@ PUBLIC
 
   	SYSTEM IMPLEMENTATION drone.Impl
   	SUBCOMPONENTS
-    	control : process control.Impl;
-    	cpu1 : processor cpu.Impl;
+    		control : process control.Impl;
+    		cpu1 : processor cpu.Impl;
   	PROPERTIES
-    	Actual_Processor_Binding => (reference (cpu1)) applies to control;
+    		Actual_Processor_Binding => (reference (cpu1)) applies to control;
 	END drone.Impl;
 END uav;
 
