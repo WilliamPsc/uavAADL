@@ -1,6 +1,0 @@
-<PROJECT>
-  <AADL path="controllerApplication.aadl" enabled="true" opened="true"/>
-  <AADL path="gps.aadl" enabled="false" opened="false"/>
-  <AADL path="ins.aadl" enabled="false" opened="false"/>
-  <AADL path="servo.aadl" enabled="false" opened="false"/>
-</PROJECT>
