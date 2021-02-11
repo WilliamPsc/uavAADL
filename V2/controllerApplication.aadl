@@ -107,9 +107,10 @@ PUBLIC
 	SUBPROGRAM IMPLEMENTATION dataProc_sequence.Impl
 	CALLS
 		MYCALLS: {
+			Call_dataProc : subprogram dataProc_spg;
 			Call_Write_gps : subprogram data_gps.Write_data_gps;
 			Call_Write_ins : subprogram data_ins.write_data_ins;
-			Call_dataProc : subprogram dataProc_spg;
+			
 		};
 	CONNECTIONS
 		C1 : data access seq_cnt_gps -> Call_Write_gps.this;
@@ -125,9 +126,10 @@ PUBLIC
 	SUBPROGRAM IMPLEMENTATION controller_sequence.Impl
 	CALLS
 		MYCALLS: {
+			Call_controller : subprogram controller_spg;
 			Call_Read_gps : subprogram data_gps.Read_data_gps;
 			Call_Read_ins : subprogram data_ins.Read_data_ins;
-			Call_controller : subprogram controller_spg;
+			
 		};
 	CONNECTIONS
 		C1 : data access seq_cnt_gps -> Call_Read_gps.this;
@@ -246,7 +248,7 @@ PUBLIC
 	END cpu;
 
 	PROCESSOR IMPLEMENTATION cpu.Impl
-	PROCESSOR
+	PROPERTIES
 		Scheduling_Protocol => (Posix_1003_Highest_Priority_First_Protocol);
 	END cpu.Impl;
 

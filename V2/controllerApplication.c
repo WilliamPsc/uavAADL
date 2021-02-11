@@ -1,36 +1,34 @@
 #include <stdio.h>
 #include <po_hi_time.h>
+#include <stdlib.h> 
 
-struct dataGPS {
-	double latitude;
-	double longitude
-} dataGPS;
 
-struct dataINS {
-	double angularSpeed;
-	double speed;
-} dataINS;
 
 int gps = 0;
 int ins = 0;
+int servo = 0;
 
 void controller_spg (void)
 {
   printf ("[%d] Controller\n", milliseconds_since_epoch());
   fflush (stdout);
+  servo = (gps + ins) / 2;
 }
 
 void dataproc_spg (void)
 {
   printf ("[%d] DataProcessor\n", milliseconds_since_epoch());
   fflush (stdout);
+  printf ("DataProcessor : Valeur servo :%d \n", servo);
 }
 
 void write_gps (int* value)
 {
-  int v = *value;
-  v++;
+  int v ;
+
+  v = rand()%100;
   *value = v;
+  gps = v;
   printf ("Write GPS : %d\n", *value);
 }
 
@@ -42,9 +40,10 @@ void read_gps (int* value)
 
 void write_ins (int* value)
 {
-  int v = *value;
-  v++;
+  int v ;
+  v = rand()%100;
   *value = v;
+  ins = v;
   printf ("Write INS : %d\n", *value);
 }
 
