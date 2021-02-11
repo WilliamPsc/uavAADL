@@ -18,8 +18,8 @@ void controller_spg (void)
 void dataproc_spg (void)
 {
   printf ("[%d] DataProcessor\n", milliseconds_since_epoch());
-  fflush (stdout);
   printf ("DataProcessor : Valeur servo :%d \n", servo);
+  fflush (stdout);
 }
 
 void write_gps (int* value)
