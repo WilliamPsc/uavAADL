@@ -77,7 +77,7 @@ PUBLIC
 
 	PROCESS IMPLEMENTATION control.Impl
 	SUBCOMPONENTS
-		-- Composants à déclarer
+		-- Composants Ã  dÃ©clarer
 		dataProcessor : THREAD dataProc.Impl;
 		controller : THREAD controller.Impl;
 		data_gps : DATA data_gps.Impl;
@@ -99,21 +99,21 @@ PUBLIC
 	END control.Impl;
 
 
-	processor cpu
-	properties
-		Scheduling_Protocol=>POSIX_1003_HIGHEST_PRIORITY_FIRST_PROTOCOL;
-  	end cpu;
+	PROCESSOR cpu
+	PROPERTIES
+		Scheduling_Protocol => POSIX_1003_HIGHEST_PRIORITY_FIRST_PROTOCOL;
+  	END cpu;
 
   	SYSTEM drone
   	END drone;
 
-  	system implementation drone.Impl
-  	subcomponents
+  	SYSTEM IMPLEMENTATION drone.Impl
+  	SUBCOMPONENTS
     		controlApplication : process control.Impl;
     		cpu1 : processor cpu;
-  	properties
-    		Actual_Processor_Binding => reference (cpu1) applies to controlApplication;
-  	end drone.Impl;
+  	PROPERTIES
+    		Actual_Processor_Binding => (reference (cpu1)) applies to controlApplication;
+  	END drone.Impl;
 END uav;
 
 

@@ -1,9 +1,9 @@
-	-- THREADS
-	-- SERVO
+	--THREADS
+	--SERVO
 	--THREAD servo
   	--FEATURES
     	--	input : IN DATA PORT inOutProc;
-	--	output : OUT DATA PORT inOutProc;
+		--	output : OUT DATA PORT inOutProc;
   	--PROPERTIES
     	--	Dispatch_Protocol => Periodic;
     	--	Period => 20 ms;
@@ -13,5 +13,3 @@
   	--END servo;
   	--THREAD IMPLEMENTATION servo.Impl
   	--END servo.Impl;
-
-

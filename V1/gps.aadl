@@ -3,7 +3,7 @@
 	--THREAD gps
   	--FEATURES
     	--	input : IN DATA PORT inOutProc;
-	--	output : OUT DATA PORT inOutProc;
+		--	output : OUT DATA PORT inOutProc;
   	--PROPERTIES
     	--	Dispatch_Protocol => Periodic;
     	--	Period => 10 ms;
@@ -13,4 +13,3 @@
   	--END gps;
   	--THREAD IMPLEMENTATION gps.Impl
   	--END gps.Impl;
-

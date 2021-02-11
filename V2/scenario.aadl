@@ -1,5 +1,5 @@
-system drone
-properties
+SYSTEM drone
+PROPERTIES
   Ocarina_Config::Timeout_Property     => 4000ms;
   Ocarina_Config::Referencial_Files    =>
     ("control", "control.ref");
@@ -11,7 +11,7 @@ properties
      value (Ocarina_Config::Deployment),
      value (Ocarina_Config::Cheddar_Properties));
   Ocarina_Config::AADL_Version         => AADLv2;
-end drone;
+END drone;
 
-system implementation drone.Impl
-end  drone.Impl;
+SYSTEM IMPLEMENTATION drone.Impl
+END drone.Impl;

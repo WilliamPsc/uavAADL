@@ -1,9 +1,9 @@
-	-- THREADS
-	-- INS
+	--THREADS
+	--INS
 	--THREAD ins
   	--FEATURES
     	--	input : IN DATA PORT inOutProc;
-	--	output : OUT DATA PORT inOutProc;
+		--	output : OUT DATA PORT inOutProc;
   	--PROPERTIES
     	--	Dispatch_Protocol => Periodic;
     	--	Period => 10 ms;
@@ -13,4 +13,3 @@
   	--END ins;
   	--THREAD IMPLEMENTATION ins.Impl
   	--END ins.Impl;
-
